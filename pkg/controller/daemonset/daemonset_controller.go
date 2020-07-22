@@ -70,10 +70,12 @@ import (
 
 func init() {
 	flag.BoolVar(&scheduleDaemonSetPods, "assign-pods-by-scheduler", true, "Use scheduler to assign pod to node.")
+	flag.IntVar(&daemonsetWorkers, "daemonset-workers", daemonsetWorkers, "The number of workers in daemonset controller")
 }
 
 var (
 	scheduleDaemonSetPods bool
+	daemonsetWorkers      = 8
 
 	// controllerKind contains the schema.GroupVersionKind for this controller type.
 	controllerKind = appsv1alpha1.SchemeGroupVersion.WithKind("DaemonSet")
@@ -176,7 +178,7 @@ func newReconciler(mgr manager.Manager) (reconcile.Reconciler, error) {
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
-	c, err := controller.New("daemonset-controller", mgr, controller.Options{Reconciler: r})
+	c, err := controller.New("daemonset-controller", mgr, controller.Options{Reconciler: r, MaxConcurrentReconciles: daemonsetWorkers})
 	if err != nil {
 		return err
 	}
